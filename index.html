@@ -1,0 +1,165 @@
+<!doctype html>
+<html style="height: 100%;">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Having Fun 🎉🍻</title>
+    <link rel="stylesheet" href="lib/element-ui@2.13.2.css">
+
+    <script src="lib/vue.js" type="text/javascript"></script>
+    <script src="lib/element-ui@2.13.2.js"></script>
+    <script src="lib/vue-resource.min.js"></script>
+</head>
+<style>
+    .mt-1em {
+        margin-top: 1em
+    }
+
+    .f-r {
+        float: right;
+    }
+
+    .f-l {
+        float: left;
+    }
+
+    .mb-1 {
+        margin-bottom: 1ch;
+    }
+
+    .back-card {
+        background-color: rgb(198, 226, 255);
+    }
+</style>
+<body class="pd-10" style="background-image: linear-gradient(rgb(217, 236, 255),rgb(83, 168, 255))">
+<div id="app" class="mt-50" style="padding-top: 1em">
+    <div id="room" v-show="info.Mine.room_info.room_no == ''">
+
+        <el-card class="box-card">
+            <div slot="header" class="clearfix">
+                <span>加入房间</span>
+            </div>
+
+            <el-row>
+                <el-col :span="18">
+                    <el-input v-model="join_room_no" placeholder="请输入房间号"></el-input>
+                </el-col>
+                <el-col :span="6">
+                    <el-button @click="joinRoom" type="primary" plain>加入</el-button>
+                </el-col>
+            </el-row>
+        </el-card>
+
+        <div class="mt-1em"></div>
+
+        <el-card class="box-card">
+            <div slot="header" class="clearfix">
+                <span>创建房间</span>
+            </div>
+
+            <el-form label-width="80px">
+                <el-form-item label="房间号">
+                    <el-input v-model="creInfo.room_no" placeholder="请设置房间号"></el-input>
+                </el-form-item>
+                <el-form-item label="玩家人数">
+                    <el-input-number v-model="creInfo.player_num" :min="1" :max="20" label="玩家人数"></el-input-number>
+                </el-form-item>
+                <el-form-item label="卡池">
+                    <el-autocomplete v-model="creInfo.items" :fetch-suggestions="querySearch" placeholder="请设置游戏卡池"
+                                     style="width: 100%">
+                    </el-autocomplete>
+                </el-form-item>
+                <el-form-item label="其他配置" placeholder="可以选填的其他配置">
+                    <el-input v-model="creInfo.others"></el-input>
+                </el-form-item>
+
+                <el-row>
+                    <el-col :span="6" :offset="18">
+                        <el-button @click="creRoom" type="primary" plain>创建</el-button>
+                    </el-col>
+                </el-row>
+            </el-form>
+        </el-card>
+
+    </div>
+
+    <div id="no_room" v-show="info.Mine.room_info.room_no != ''">
+        <el-row>
+            <el-col :span="5" :offset="1">
+                <el-tag><i class="el-icon-s-home"></i>[{{info.Room.player_num}}人房] {{ info.Mine.room_info.room_no }}
+                </el-tag>
+            </el-col>
+            <el-col :span="7" class="f-r">
+                <el-tag @click="applyMaster" type="warning">第 <span style="font-size: 28px;">{{ info.Room.games }}</span> 局</el-tag>
+            </el-col>
+        </el-row>
+
+        <div style="margin-top: 8em"></div>
+
+        <el-row>
+
+            <el-col :span="14" :offset="5">
+                <div style="height: 20em;" @click="switchCardOrPool">
+
+                    <transition name="el-zoom-in-center">
+                        <el-card v-show="showCard" class="box-card" style="height: 20em;">
+                            <div style="padding-top: 6em;text-align: center;">
+                                <span class="f-30 c-primary"
+                                      style="font-size: 3em;color: rgb(140, 197, 255);">{{ card }}</span>
+                            </div>
+                        </el-card>
+                    </transition>
+
+                    <transition name="el-zoom-in-center">
+                        <el-card v-show="showPool" class="box-card back-card" style="height: 20em;">
+                            <el-tag v-for="(item, i) in info.Room.items" :key="i">{{item}}</el-tag>
+                        </el-card>
+                    </transition>
+
+                </div>
+
+            </el-col>
+
+
+            <el-col :span="5">
+                <el-tag :effect="info.Mine.uid == uid ? 'dark' : 'light'" type="success" class="f-r mb-1"
+                        v-for="(uid, num) in info.Room.players" :key="num">
+                    <el-dropdown trigger="click" v-if="info.Mine.room_info.is_master && info.Mine.uid != uid"
+                                 @command="managePlayer">
+                        <span class="el-dropdown-link">
+                            {{ num }}号<i :class="info.Room.master == uid ? 'el-icon-user-solid' : 'el-icon-user' "></i>
+                        </span>
+
+                        <el-dropdown-menu slot="dropdown">
+                            <el-dropdown-item :command="'setMaster,' + uid" icon="el-icon-top">设为房主</el-dropdown-item>
+                            <el-dropdown-item :command="'kickOut,' + uid" icon="el-icon-circle-close">踢出
+                            </el-dropdown-item>
+                        </el-dropdown-menu>
+                    </el-dropdown>
+                    <span class="el-dropdown-link" v-else>
+                        {{ num }}号<i :class="info.Room.master == uid ? 'el-icon-user-solid' : 'el-icon-user' "></i>
+                    </span>
+
+
+                </el-tag>
+            </el-col>
+
+        </el-row>
+
+        <div style="margin-top: 4em"></div>
+        <el-row>
+            <el-col :span="12">
+                <el-button @click="outRoom" type="text" class="f-l">退出房间</el-button>
+            </el-col>
+            <el-col :span="12">
+                <el-button class="f-r" v-show="info.Mine.room_info.is_master" @click="reStart" type="primary" plain>开始
+                </el-button>
+            </el-col>
+        </el-row>
+    </div>
+</div>
+</body>
+<script src="index.js" type="text/javascript"></script>
+</html>
