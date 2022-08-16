@@ -59,7 +59,7 @@ let realMsg = [];
 let ws;
 (function ping() {
     doGet('ping', function (id) {
-        ws = new WebSocket("ws://" + BASE_PATH + "ws?u=" + id);//连接服务器
+        ws = new WebSocket("wss://" + BASE_PATH + "ws?u=" + id);//连接服务器
         ws.onmessage = function (event) {
             let info = JSON.parse(JSON.parse(event.data).content)
             if (info.Mine) {
