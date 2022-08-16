@@ -57,6 +57,14 @@ const BASE_URL = "https://" + BASE_PATH
 let realMsg = [];
 
 let ws;
+
+// 跨域 cookie
+Vue.http.options.xhr = {withCredentials:true};
+Vue.http.intercept.push((request, next) => {
+    request.credentials = true;
+    next();
+});
+
 (function ping() {
     doGet('ping', function (id) {
         ws = new WebSocket("wss://" + BASE_PATH + "ws?u=" + id);//连接服务器
