@@ -51,7 +51,7 @@ let defaultPool = [
     {"value": "预言家 女巫 猎人 村民 村民  狼人 狼人 狼人"}
 ]
 const BASE_PATH = "52.76.212.95:8080/game/"
-const BASE_URL = "http://" + BASE_PATH
+const BASE_URL = "https://" + BASE_PATH
 
 //[msg,type]
 let realMsg = [];
