@@ -60,6 +60,7 @@ let ws;
 
 // 跨域 cookie
 Vue.http.options.xhr = {withCredentials:true};
+Vue.http.options.emulateJSON = true;
 Vue.http.interceptors.push((request, next) => {
     request.credentials = true;
     next();
